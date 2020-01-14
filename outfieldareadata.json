@@ -1,0 +1,302 @@
+[
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Arizona",
+   "Team": "Diamondbacks",
+   "Stadium": "Chase Field",
+   "Of": 94.1,
+   "Lf": 28.7,
+   "Cf": 36.2,
+   "Rf": 29.2
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Atlanta",
+   "Team": "Braves",
+   "Stadium": "Turner Field",
+   "Of": 94.1,
+   "Lf": 29.2,
+   "Cf": 35.3,
+   "Rf": 29.6
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Baltimore",
+   "Team": "Orioles",
+   "Stadium": "Oriole Park at Camden Yards",
+   "Of": 87.8,
+   "Lf": 27.1,
+   "Cf": 34.4,
+   "Rf": 26.3
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Boston",
+   "Team": "Red Sox",
+   "Stadium": "Fenway Park",
+   "Of": 83.5,
+   "Lf": 21.1,
+   "Cf": 32.8,
+   "Rf": 29.6
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Chicago",
+   "Team": "Cubs",
+   "Stadium": "Wrigley Field",
+   "Of": 89.7,
+   "Lf": 26.8,
+   "Cf": 34.1,
+   "Rf": 28.8
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Chicago",
+   "Team": "White Sox",
+   "Stadium": "U.S. Cellular Field",
+   "Of": 87.8,
+   "Lf": 26.5,
+   "Cf": 34.2,
+   "Rf": 27.2
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Cincinnati",
+   "Team": "Reds",
+   "Stadium": "Great American Ball Park",
+   "Of": 87.1,
+   "Lf": 26.7,
+   "Cf": 34.5,
+   "Rf": 26
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Cleveland",
+   "Team": "Indians",
+   "Stadium": "Progressive Field",
+   "Of": 85.6,
+   "Lf": 25.8,
+   "Cf": 33.2,
+   "Rf": 26.6
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Colorado",
+   "Team": "Rockies",
+   "Stadium": "Coors Field",
+   "Of": 97.3,
+   "Lf": 30.2,
+   "Cf": 38.3,
+   "Rf": 28.8
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Detroit",
+   "Team": "Tigers",
+   "Stadium": "Comerica Park",
+   "Of": 95.8,
+   "Lf": 28.5,
+   "Cf": 39.9,
+   "Rf": 27.4
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Houston",
+   "Team": "Astros",
+   "Stadium": "Minute Maid Park",
+   "Of": 88.6,
+   "Lf": 23.2,
+   "Cf": 38.8,
+   "Rf": 26.6
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Kansas City",
+   "Team": "Royals",
+   "Stadium": "Kauffman Stadium",
+   "Of": 97.9,
+   "Lf": 30.4,
+   "Cf": 36.9,
+   "Rf": 30.5
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Los Angeles",
+   "Team": "Angels",
+   "Stadium": "Angel Stadium",
+   "Of": 89.2,
+   "Lf": 29,
+   "Cf": 32.7,
+   "Rf": 27.5
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Los Angeles",
+   "Team": "Dodgers",
+   "Stadium": "Dodger Stadium",
+   "Of": 91.1,
+   "Lf": 28.8,
+   "Cf": 33.8,
+   "Rf": 28.5
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Miami",
+   "Team": "Marlins",
+   "Stadium": "Marlins Park",
+   "Of": 93.4,
+   "Lf": 28.3,
+   "Cf": 36.9,
+   "Rf": 28.3
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Milwaukee",
+   "Team": "Brewers",
+   "Stadium": "Miller Park",
+   "Of": 91.1,
+   "Lf": 28.9,
+   "Cf": 34.6,
+   "Rf": 27.6
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Minnesota",
+   "Team": "Twins",
+   "Stadium": "Target Field",
+   "Of": 90.4,
+   "Lf": 28,
+   "Cf": 35.8,
+   "Rf": 26.6
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "New York",
+   "Team": "Mets",
+   "Stadium": "Citi Field",
+   "Of": 91.5,
+   "Lf": 27.1,
+   "Cf": 36,
+   "Rf": 28.4
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "New York",
+   "Team": "Yankees",
+   "Stadium": "Yankee Stadium",
+   "Of": 87.6,
+   "Lf": 27.7,
+   "Cf": 35.6,
+   "Rf": 24.2
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Oakland",
+   "Team": "Athletics",
+   "Stadium": "O.co Coliseum",
+   "Of": 88.4,
+   "Lf": 27.5,
+   "Cf": 33.4,
+   "Rf": 27.5
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Philadelphia",
+   "Team": "Phillies",
+   "Stadium": "Citizens Bank Park",
+   "Of": 86.2,
+   "Lf": 25.7,
+   "Cf": 34.9,
+   "Rf": 25.5
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Pittsburgh",
+   "Team": "Pirates",
+   "Stadium": "PNC Park",
+   "Of": 90.2,
+   "Lf": 29.8,
+   "Cf": 33.9,
+   "Rf": 26.5
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "San Diego",
+   "Team": "Padres",
+   "Stadium": "PETCO Park",
+   "Of": 90.8,
+   "Lf": 27.9,
+   "Cf": 35,
+   "Rf": 27.8
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "San Francisco",
+   "Team": "Giants",
+   "Stadium": "AT&T Park",
+   "Of": 92.2,
+   "Lf": 27.3,
+   "Cf": 36.2,
+   "Rf": 28.7
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Seattle",
+   "Team": "Mariners",
+   "Stadium": "Safeco Field",
+   "Of": 87.8,
+   "Lf": 27.2,
+   "Cf": 34.2,
+   "Rf": 26.4
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "St. Louis",
+   "Team": "Cardinals",
+   "Stadium": "Busch Stadium",
+   "Of": 91.1,
+   "Lf": 28.6,
+   "Cf": 34.1,
+   "Rf": 28.4
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Tampa Bay",
+   "Team": "Rays",
+   "Stadium": "Tropicana Field",
+   "Of": 89.6,
+   "Lf": 27.4,
+   "Cf": 36.5,
+   "Rf": 25.7
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Texas",
+   "Team": "Rangers",
+   "Stadium": "Globe Life Park in Arlington",
+   "Of": 92.7,
+   "Lf": 28.9,
+   "Cf": 36.1,
+   "Rf": 27.7
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Toronto",
+   "Team": "Blue Jays",
+   "Stadium": "Rogers Centre",
+   "Of": 91.8,
+   "Lf": 27.9,
+   "Cf": 35.9,
+   "Rf": 27.9
+ },
+ {
+   "url": "https://www.fangraphs.com/community/complete-outfield-dimensions/",
+   "City": "Washington",
+   "Team": "Nationals",
+   "Stadium": "Nationals Park",
+   "Of": 88.8,
+   "Lf": 28.2,
+   "Cf": 32.8,
+   "Rf": 27.8
+ }
+]

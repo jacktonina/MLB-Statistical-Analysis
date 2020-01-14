@@ -1,0 +1,327 @@
+---
+title: "Final Project - Jack Tonina"
+output: html_notebook
+---
+
+Load all necesary packages for project.
+```{r}
+library(rvest)
+library(jsonlite)
+library(stringr)
+library(RSQLite)
+library(caTools)
+library(sqldf)
+library(stats)
+library(BBmisc)
+library(class)
+library(caret)
+library(gmodels)
+library(neuralnet)
+```
+
+Read offensive data for each ballpark in from CSV downloaded of website. Removes the three rows below because they are ballparks that hosted exhibition games, and therefore dont have a full season of data, or a team associated with it. Also they are not included in the data containing outfield areas and park dimensions. Renames two of the cells for the ballparks to make alphabetical order of ballparks same as two other datasets. Lastly, orders the dataframe in alphabetical order based on the ballpark column. 
+```{r}
+parkHomeruns <- read.csv("sportsref_download-4.csv")
+parkHomeruns <- parkHomeruns[-c(3, 12, 13),]
+parkHomeruns$Split <- as.character(parkHomeruns$Split)
+parkHomeruns[2,1] <- "SanFG-AT&T Pk"
+parkHomeruns[20,1] <- "SanDP-Petco Pk"
+parkHomeruns <- parkHomeruns[order(parkHomeruns$Split),, drop=FALSE]
+```
+
+Reads data in front JSON document generated from a custom web scraper (using import.io). Then creates a dataframe from the JSON documeny. Removes the first column because it was a url for each row of data. 
+```{r}
+file <- "outfieldareadata.json"
+jsonFile <- fromJSON(file)
+outfieldAreaDF <- as.data.frame(jsonFile)
+outfieldAreaDF <- outfieldAreaDF[,-1]
+```
+
+Reads data in from XML nodes acquired using Selector Gadget. Each individual chunk of code specifies the node, then converts it from HTML to text. Removes first element from many of the chunks because this is the title of the column found on the website. The left field, center field and right field data was all stored in one column on the website, so I used regular expressions to break out and strip the dimensions of each park into their own vectors. I then take all the vectors and put them in a list and convert the list to a matrix in order to build my dataframe. I then name each of the columns and order the dataframe in ascending alphabetical order. Finally, creates a column that takes the mean of the LF, CF and RF columns for each row in order to get the average fence distance for each stadium.
+```{r}
+url <- "https://www.ballparksofbaseball.com/comparisons/"
+webpage <- read_html(url)
+
+stadiumNameHTML <- html_nodes(webpage, 'td:nth-child(1)')
+stadiumNameData <- html_text(stadiumNameHTML)
+stadiumNameData <- stadiumNameData[-1]
+
+teamHTML <- html_nodes(webpage, 'td:nth-child(2)')
+teamData <- html_text(teamHTML)
+teamData <- teamData[-1]
+
+dimensionsHTML <- html_nodes(webpage, 'td:nth-child(7)')
+dimensionsData <- html_text(dimensionsHTML)
+dimensionsData <- dimensionsData[-1]
+
+leftfieldData <- str_extract(dimensionsData, "\\d+-L")
+leftfieldData <- substr(leftfieldData,1,nchar(leftfieldData)-2)
+leftfieldData <- as.numeric(leftfieldData)
+
+centerfieldData <- str_extract(dimensionsData, "\\d+-C")
+centerfieldData <- substr(centerfieldData,1,nchar(centerfieldData)-2)
+centerfieldData <- as.numeric(centerfieldData)
+
+rightfieldData <- str_extract(dimensionsData, "\\d+-R")
+rightfieldData <- substr(rightfieldData,1,nchar(rightfieldData)-2)
+rightfieldData <- as.numeric(rightfieldData)
+
+dataList <- c(stadiumNameData, teamData, leftfieldData, centerfieldData, rightfieldData)
+dataMatrix <- matrix(dataList, nrow = 30)
+ballparkDimsDF <- as.data.frame(dataMatrix)
+names(ballparkDimsDF) <- c("Stadium Name", "Team", "Leftfield Depth", "Centerfield Depth", "Rightfield Depth")
+ballparkDimsDF <- ballparkDimsDF[order(ballparkDimsDF$Team), , drop=FALSE]
+
+ballparkDimsDF$AvgFenceDist <- (leftfieldData + centerfieldData + rightfieldData) / 3
+```
+
+Reads in CSV obtained using the web scraper Data Miner, showing many key statcast statistics for all players with over 120 measured occurences. Similar process to above data^.
+```{r}
+statcastDB <- read.csv("statcastData.csv")
+statcastDB <- na.omit(statcastDB)
+```
+
+----------------------------------------------------------------------------------------------------
+
+Creates a vector of each teams individual abbreviation that will be used as the primary key in each of the data frames for consistency. I then append this vector to the left of each dataframe using cbind(). Lastly, I used merge() to combine the first two data frames and then finally that combination with my third dataframe to create a master dataframe containing a majority of the important information from each stadium (using the team abbreviations as the key).
+```{r}
+teamAbrv <- c("ARI", "ATL", "BAL", "BOS", "CHC", "CWS", "CIN", "CLE", "COL", "DET", "HOU", "KC", "LAA", "LAD", "MIA", "MIL", "MIN", "NYM", "NYY", "OAK", "PHI", "PIT", "SD", "SF", "SEA", "STL", "TB", "TEX", "TOR", "WAS")
+ballparkDimsDF <- cbind(TeamAbrv = teamAbrv, ballparkDimsDF)
+outfieldAreaDF <- cbind(TeamAbrv = teamAbrv, outfieldAreaDF)
+parkHomeruns <- cbind(TeamAbrv = teamAbrv, parkHomeruns)
+
+masterDF <- merge(ballparkDimsDF, outfieldAreaDF, by = "TeamAbrv")
+masterDF <- merge(masterDF, parkHomeruns, by = "TeamAbrv")
+```
+
+----------------------------------------------------------------------------------------------------
+
+Opens, creates and connects to a SQLite database called "baseballDB." I create four tables: one for each of my three dataframes and then finally one table for the master (combined) dataframe. 
+```{r}
+dbOpen <- sqldf("attach baseballDB as new")
+connect <- dbConnect(RSQLite::SQLite(), "baseballDB")
+
+fillDBhomers <- dbWriteTable(connect, "homeruns", parkHomeruns, overwrite = TRUE)
+fillDBoutfieldArea <- dbWriteTable(connect, "OutfieldArea", outfieldAreaDF, overwrite = TRUE)
+fillDBparkDims <- dbWriteTable(connect, "ParkDims", ballparkDimsDF, overwrite = TRUE)
+fillDBstatcast <- dbWriteTable(connect, "Statcast", statcastDB, overwrite = TRUE)
+fillDBmaster <- dbWriteTable(connect, "Master", masterDF, overwrite = TRUE)
+```
+
+----------------------------------------------------------------------------------------------------
+
+Plots all of the homerun values found in the masterDF to visually determine outliers. As you can see, there seems to be two outliers from the majority of the data set. 
+```{r}
+hrOutliers <- hist(masterDF$HR, breaks = 10, main = "Distribution of Homeruns Hit in Each MLB Ballpark", xlab = "Number of Homeruns")
+```
+
+Identifies the two outliers found above by connecting to database and pulling information on the two stadiums with the least homeruns. Creates a dataframe with two columns, one for each outlier, showing the stadium name, team, HR hit, outfield depths and finally the rank of the stadium in terms of outfield area (greatest to least).
+```{r}
+outlierStadium <- dbGetQuery(connect, 'SELECT "Stadium Name", "TeamAbrv", "HR" FROM Master ORDER BY HR ASC LIMIT 2')
+
+leastHRdims <- dbGetQuery(connect, 'SELECT "Leftfield Depth", "Centerfield Depth", "Rightfield Depth" FROM Master ORDER BY HR ASC LIMIT 2')
+
+outfieldAreaDF$AreaRanks <- rank(-outfieldAreaDF$Of)
+minOutlierAreaRank <- paste(outfieldAreaDF[outfieldAreaDF$Stadium == "AT&T Park", 9], "th", sep = "")
+min2OutlierAreaRank <- paste(outfieldAreaDF[outfieldAreaDF$Stadium == "Marlins Park", 9], "th", sep = "")
+
+outlier1 <- c(outlierStadium[1,], leastHRdims[1,], minOutlierAreaRank)
+outlier2 <- c(outlierStadium[2,], leastHRdims[2,], min2OutlierAreaRank)
+
+twoOutliers <- cbind(outlier1, outlier2)
+row.names(twoOutliers) <- c("Stadium", "Team", "HR", "Leftfield Depth", "Centerfield Depth", "Rightfield Depth", "Outfield Area Rank (Greatest to Least)")
+
+print(twoOutliers)
+```
+
+
+----------------------------------------------------------------------------------------------------
+
+Creates a simple plot that shows the correlation between outfield area and number of homeruns hit in that park. As you can, there doesnt seem to be a super strong correlation between these two variables.
+```{r}
+outfieldArea <- masterDF$Of
+homerunsHit <- masterDF$HR
+
+regLine <- lm(homerunsHit ~ outfieldArea)
+
+{plot(homerunsHit ~ outfieldArea, ylab = "Homeruns Hit", xlab = "Total Outfield Area", main = "Homeruns Hit vs. Total Outfield Area")
+abline(regLine$coefficients)}
+```
+
+Looking at the various regression statistics associated with this model, it is clear this isn't the best predictive model of homeruns hit. Although the regression line makes sense, decreasing in outfield area as more homeruns are hit, the adjusted r-squared value is just .05449 showing minimal fit.
+```{r}
+summary(regLine)
+```
+
+
+----------------------------------------------------------------------------------------------------
+
+Creates model to show the correlations between various Statcast statistics (launch angle, exit velocity, average distance, balls hit harder than 95mph, hard hit percent, barrel percent) and the average homerun distance of players. 
+
+Divides the statcast data on over 700 players into training and testing sets to be used in the model.
+```{r}
+statcastDB$Sample <- FALSE
+statcastDB$Sample <- sample.split(statcastDB$Sample, SplitRatio = .75)
+statcastTrain <- statcastDB[statcastDB$Sample == TRUE, ]
+statcastTest <- statcastDB[statcastDB$Sample == FALSE, ]
+```
+
+Creates original model, then uses step() to determine the optimal model to predict average homerun distance. 
+```{r}
+avgHRdistPredictor <- lm(AvgHRdist ~ AvgLaunchAngle + AvgExitVelo + ExitVeloFBLD + AvgDist + HardHit95 + HardHitPct + BarrelPct, data = statcastTrain)
+summary(avgHRdistPredictor)
+
+bestModelHRdist <- step(avgHRdistPredictor, direction = "backward")
+summary(bestModelHRdist)
+```
+
+The optimal model to predict average homerun distance is: AvgHRdist ~ ExitVeloFBLD + AvgDist + BarrelPct
+Uses this model to predict the average homerun distance of all 700+ players using the 3 variables included in optimal model. Then calculates the percent error of the model (difference between actual average HR distance and predicted average homerun distance). The percent error on the model is 0.0147%.
+```{r}
+statcastTestPredict <- predict(bestModelHRdist, type = "response", newdata = statcastTest)
+avgDistPredict <- statcastTestPredict
+
+PctError <- abs(mean((avgDistPredict - statcastTest$AvgHRdist) / statcastTest$AvgHRdist))
+print(PctError)
+```
+
+```{r}
+MSEmlr = (sum((statcastTest$AvgHRdist - avgDistPredict)^2) / length(statcastTest$AvgHRdist)) ^ 0.5
+print(MSEmlr)
+
+factor <- mean(statcastTest$AvgHRdist)
+pctMSE <- MSEmlr/factor
+print(pctMSE)
+```
+
+
+------------------------------------------------------------------------------------------------------
+
+KNN model to classify ballparks as hitter friendly or pitcher friendly (based on number of hits, doubles, triples and homeruns).
+
+Duplicates masterDF to be used in the calculation of KNN, because we will need to normalize all variables. Removes character columns that will not be part of model, and converts all factor columns to numeric columns in order to normalize them.
+```{r}
+knnMaster <- masterDF
+
+knnMaster[,1] <- as.character(knnMaster[,1])
+knnMaster[,2] <- as.character(knnMaster[,2])
+knnMaster[,3] <- as.character(knnMaster[,3])
+
+knnMaster[,8:10] <- NULL
+knnMaster$Split <- NULL
+knnMaster$sOPS. <- NULL
+
+factors <- sapply(knnMaster, is.factor)
+knnMaster[factors] <- lapply(knnMaster[factors], function(x) as.numeric(as.character(x)))
+knnMaster[,2:3] <- NULL
+```
+
+Normalizes all the values in the data set in order to include them in the KNN model, creates new dataframe with normalized values called KnnMasterNorms.
+```{r}
+normVals <- function(x) {return ((x - min(x)) / (max(x) - min(x))) }
+
+knnMasterNorms <- as.data.frame(lapply(knnMaster[2:36], normVals))
+knnMasterNorms <- cbind(knnMaster[,1], knnMasterNorms)
+```
+
+Adds column classifying parks into 5 categories based on homeruns hit: Very Pitcher Friendly, Pitcher Friendly, Neutral, Hitter Friendly, Very Hitter Friendly. Makes this column of the factor type.
+```{r}
+knnMasterNorms$Quintiles <- with(knnMasterNorms, factor(findInterval(HR, c(-Inf, quantile(HR, probs=c(0.2, .4, .6, .8)), Inf)), labels=c("Very Pitcher Friendly","Pitcher Friendly","Neutral","Hitter Friendly", "Very Hitter Friendly")))
+knnMasterNorms$Quintiles <- as.factor(knnMasterNorms$Quintiles)
+```
+
+Splits data into training and testing subsets to use to predict model. Creates the training and testing labels, which are the given factor values saying whether parks are hitter or pitcher friendly. Makes the class argument equal to the factor levels of the training subset. 
+```{r}
+set.seed(34781)
+
+split <- createDataPartition(knnMasterNorms$Quintiles, p=0.65, list=FALSE)
+
+knnTrain <- knnMasterNorms[split, -37]
+knnTrain[,1] <- NULL
+
+knnTest <- knnMasterNorms[-split, -37]
+knnTest[,1] <- NULL
+
+knnTrainLabel <- knnMasterNorms[split, 37]
+knnTestLabel <- knnMasterNorms[-split, 37]
+
+cl <- knnMasterNorms[split, 37]
+```
+
+Uses the function KNN to classify the test data into the factor categories predicting whether parks are hitter or pitcher friendly. Plots all results in a table that shows the accuracy of the model.
+```{r}
+knnTestPred <- knn(knnTrain, knnTest, cl, k=3, prob=TRUE)
+
+knnPerformance <- table(knnTestLabel, knnTestPred)
+knnPct <- mean(as.character(knnTestLabel) == as.character(knnTestPred))
+
+print(knnPerformance)
+
+print(knnPct)
+```
+
+-------------------------------------------------------------------------------------------------------
+
+Creates neural net to predict the amount of homeruns hit in each stadium based on various dimension and offensive statistics for each unique park.
+
+Duplicates the knnMaster dataframe and assigns it to neuralDF. Sets seed in order to guarentee reproductivity, and creates training and testing sets for the model. Takes all non-numeric columns in dataframe and converts them to numeric. 
+```{r}
+neuralDF <- knnMaster
+neuralDF[,1] <- NULL
+
+set.seed(8392)
+
+sampleSize <- .6 * nrow(neuralDF)
+sampler <- sample(seq_len (nrow(neuralDF)), size = sampleSize)
+
+neuralTrain <- neuralDF[sampler,]
+neuralTest <- neuralDF[-sampler,]
+
+nonNum <- sapply(knnMaster, is.numeric)
+knnMaster[-nonNum] <- lapply(knnMaster[factors], function(x) as.numeric(as.character(x)))
+```
+
+Takes min and max for each column in order to scale the data. Then creates new dataframe called scaledNeuralDF that holds all scaled data.
+```{r}
+set.seed(452114)
+
+max <- apply(neuralDF, 2, max)
+min <- apply(neuralDF, 2, min)
+
+scaledNeuralDF <- as.data.frame(scale(neuralDF, center = min, scale = (max - min)))
+```
+
+Sets seed again, then creates a neural network using important variables from dataframe to predict the amount of homeruns hit in a stadium.
+```{r}
+set.seed(3432)
+
+trainNN <- scaledNeuralDF[sampler, ]
+testNN <- scaledNeuralDF[-sampler, ]
+
+neural <- neuralnet(formula = HR ~ `Leftfield Depth` + `Centerfield Depth` + `Rightfield Depth` + Of + H + X2B + X3B + RBI + SB + BB + SO + BA + OBP + SLG + OPS + TB + IBB + BAbip + tOPS., trainNN, hidden = 3 , linear.output = T )
+
+plot(neural)
+```
+
+Uses neural network created above using the training data to predict the homerun values for the stadiums in the testing data set. Plots the accuracy of the model on the test data below. 
+```{r}
+set.seed(4576)
+
+predictTestNN <- compute(neural, testNN[, c("Leftfield Depth", "Centerfield Depth", "Rightfield Depth", "Of", "H", "X2B", "X3B", "RBI", "SB", "BB", "SO", "BA", "OBP", "SLG", "OPS", "TB", "IBB", "BAbip", "tOPS.")])
+predictTestNN <- (predictTestNN$net.result * (max(neuralDF$HR) - min(neuralDF$HR))) + min(neuralDF$HR)
+
+{plot(neuralTest$HR, predictTestNN, col='blue', pch=16, ylab = "predicted rating NN", xlab = "real rating")
+abline(a=0,b=1)}
+```
+
+Calculates the mean squared error for the test predictions plotted on the graph above. 
+```{r}
+MSEnn = (sum((neuralTest$HR - predictTestNN)^2) / nrow(neuralTest)) ^ 0.5
+print(MSEnn)
+
+averageHR <- mean(neuralTest$HR)
+pctMSEnn <- MSEnn/averageHR
+print(pctMSEnn)
+```
+
+------------------------------------------------------------------------------------------------------------
